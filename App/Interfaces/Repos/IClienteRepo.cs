@@ -8,6 +8,6 @@ namespace App.Interfaces.Repos
     /// </summary>
     public interface IClienteRepo : IGenericRepo<Cliente>
     {
-        // Aquí puedes definir métodos específicos de Cliente
+        
     }
 }

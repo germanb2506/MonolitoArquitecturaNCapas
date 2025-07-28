@@ -3,17 +3,18 @@
     public class Cliente
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = null!;
-        public string? DocumentoIdentidad { get; set; }
-        public string? TipoCliente { get; set; }
-        public string? Correo { get; set; }
-        public string? Telefono { get; set; }
-        public string? Empresa { get; set; }
-        public string? Direccion { get; set; }
-        public string? Ciudad { get; set; }
-        public string? Pais { get; set; }
-        public string? SitioWeb { get; set; }
-        public string? NotasInternas { get; set; }
-        public DateTime CreadoEn { get; set; }
+        public string RazonSocial { get; set; } = null!;
+        public string Nit { get; set; } = null!;
+        public string TipoCliente { get; set; } = null!;
+        public string RepresentanteLegal { get; set; } = null!;
+        public string CorreoContacto { get; set; } = null!;
+        public string TelefonoContacto { get; set; } = null!;
+        public string Direccion { get; set; } = null!;
+        public string Ciudad { get; set; } = null!;
+        public string Pais { get; set; } = null!;
+        public string? PaginaWeb { get; set; }
+        public string? Notas { get; set; }
+        public bool Activo { get; set; }
+        public DateTime FechaRegistro { get; set; }
     }
 }

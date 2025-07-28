@@ -1,0 +1,130 @@
+﻿@model List<App.Dto.ClienteDto>
+
+@{
+    ViewData["Title"] = "Clientes";
+}
+<div class="row">
+    <div class="col-12">
+        <h2>Clientes</h2>
+
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Razón Social</th>
+                    <th>NIT</th>
+                    <th>Tipo Cliente</th>
+                    <th>Correo</th>
+                    <th>Ciudad</th>
+                    <th>País</th>
+                    <th>Activo</th>
+                    <th>Fecha Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Model)
+                {
+                    <tr>
+                        <td>@cliente.Id</td>
+                        <td>@cliente.RazonSocial</td>
+                        <td>@cliente.Nit</td>
+                        <td>@cliente.TipoCliente</td>
+                        <td>@cliente.CorreoContacto</td>
+                        <td>@cliente.Ciudad</td>
+                        <td>@cliente.Pais</td>
+                        <td>@(cliente.Activo ? "Sí" : "No")</td>
+                        <td>@cliente.FechaRegistro.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+<div class="row" >
+    <div class="col-2" style="align-content:center;">
+        <button class="btn btn-success" onclick="ModalNuevoCliente()"> Nuevo Cliente</button>
+    </div>
+  
+</div>
+<div class="modal" tabindex="-1" id="modalNuevoCliente">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Insertar cliente nuevo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body row g-3">
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="razonSocial" placeholder="Nombre o razón social">
+                    <label for="razonSocial">Nombre o Razón Social *</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="nit" placeholder="NIT">
+                    <label for="nit">NIT *</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="tipoCliente" placeholder="Tipo de Cliente">
+                    <label for="tipoCliente">Tipo Cliente</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="representanteLegal" placeholder="Representante Legal">
+                    <label for="representanteLegal">Representante Legal</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="email" class="form-control" id="correoContacto" placeholder="email@dominio.com">
+                    <label for="correoContacto">Correo de Contacto *</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="telefonoContacto" placeholder="Teléfono">
+                    <label for="telefonoContacto">Teléfono de Contacto</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="direccion" placeholder="Dirección">
+                    <label for="direccion">Dirección</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="ciudad" placeholder="Ciudad">
+                    <label for="ciudad">Ciudad</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="text" class="form-control" id="pais" placeholder="País">
+                    <label for="pais">País</label>
+                </div>
+
+                <div class="col-md-6 form-floating">
+                    <input type="url" class="form-control" id="paginaWeb" placeholder="https://www.sitio.com">
+                    <label for="paginaWeb">Página Web</label>
+                </div>
+
+                <div class="col-12 form-floating">
+                    <textarea class="form-control" placeholder="Notas adicionales" id="notas" style="height: 100px"></textarea>
+                    <label for="notas">Notas</label>
+                </div>
+
+                <div class="col-12 form-check ps-4 pt-2">
+                    <input class="form-check-input" type="checkbox" id="activo" checked>
+                    <label class="form-check-label" for="activo">Activo</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarNuevoCliente">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/cliente.js"></script>
+}

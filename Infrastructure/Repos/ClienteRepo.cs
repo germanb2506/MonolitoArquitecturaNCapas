@@ -1,6 +1,7 @@
 ﻿using App.Interfaces.Repos;
 using Domain.Entities;
 using Infrastructure.Repos.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repos
 {
@@ -12,5 +13,6 @@ namespace Infrastructure.Repos
         {
             _context = context;
         }
+        
     }
 }

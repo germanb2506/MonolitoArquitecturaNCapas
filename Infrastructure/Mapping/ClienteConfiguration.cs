@@ -13,56 +13,22 @@ namespace Infrastructure.Mapping
             builder.ToTable("cliente", "public");
 
             builder.HasKey(c => c.Id);
+            builder.Property(c => c.Id).HasColumnName("id");
 
-            builder.Property(c => c.Id)
-                .HasColumnName("id");
+            builder.Property(c => c.RazonSocial).HasColumnName("razon_social").IsRequired().HasMaxLength(150);
+            builder.Property(c => c.Nit).HasColumnName("nit").IsRequired().HasMaxLength(50);
+            builder.Property(c => c.TipoCliente).HasColumnName("tipo_cliente").IsRequired().HasMaxLength(50);
+            builder.Property(c => c.RepresentanteLegal).HasColumnName("representante_legal").IsRequired().HasMaxLength(150);
+            builder.Property(c => c.CorreoContacto).HasColumnName("correo_contacto").IsRequired().HasMaxLength(100);
+            builder.Property(c => c.TelefonoContacto).HasColumnName("telefono_contacto").IsRequired().HasMaxLength(50);
+            builder.Property(c => c.Direccion).HasColumnName("direccion").IsRequired().HasMaxLength(200);
+            builder.Property(c => c.Ciudad).HasColumnName("ciudad").IsRequired().HasMaxLength(100);
+            builder.Property(c => c.Pais).HasColumnName("pais").IsRequired().HasMaxLength(100);
+            builder.Property(c => c.PaginaWeb).HasColumnName("pagina_web").HasMaxLength(150);
+            builder.Property(c => c.Notas).HasColumnName("notas").HasMaxLength(500);
+            builder.Property(c => c.Activo).HasColumnName("activo");
+            builder.Property(c => c.FechaRegistro).HasColumnName("fecha_registro").HasColumnType("timestamp");
 
-            builder.Property(c => c.Nombre)
-                .HasColumnName("nombre")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            builder.Property(c => c.DocumentoIdentidad)
-                .HasColumnName("documento_identidad")
-                .HasMaxLength(50);
-
-            builder.Property(c => c.TipoCliente)
-                .HasColumnName("tipo_cliente")
-                .HasMaxLength(50);
-
-            builder.Property(c => c.Correo)
-                .HasColumnName("correo")
-                .HasMaxLength(100);
-
-            builder.Property(c => c.Telefono)
-                .HasColumnName("telefono")
-                .HasMaxLength(50);
-
-            builder.Property(c => c.Empresa)
-                .HasColumnName("empresa")
-                .HasMaxLength(100);
-
-            builder.Property(c => c.Direccion)
-                .HasColumnName("direccion");
-
-            builder.Property(c => c.Ciudad)
-                .HasColumnName("ciudad")
-                .HasMaxLength(100);
-
-            builder.Property(c => c.Pais)
-                .HasColumnName("pais")
-                .HasMaxLength(100);
-
-            builder.Property(c => c.SitioWeb)
-                .HasColumnName("sitio_web")
-                .HasMaxLength(200);
-
-            builder.Property(c => c.NotasInternas)
-                .HasColumnName("notas_internas");
-
-            builder.Property(c => c.CreadoEn)
-                .HasColumnName("creado_en")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         }
     }
 }

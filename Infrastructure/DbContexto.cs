@@ -6,15 +6,14 @@ namespace Infrastructure
 {
     public class DbContexto : DbContext
     {
-        public DbContexto(DbContextOptions<DbContexto> options) : base(options)
-        {
-        }
+        public DbContexto(DbContextOptions<DbContexto> options) : base(options){}
         // Define DbSets for your entities here
-        public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Cliente> Clientes { get; set; }=null!;
 
         //Mapping de las entidades
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            
             modelBuilder.ApplyConfiguration(new ClienteConfiguration());
 
             base.OnModelCreating(modelBuilder);

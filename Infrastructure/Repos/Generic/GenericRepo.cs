@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using App.Interfaces.Repos.Generic;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq.Expressions;
-using App.Interfaces.Repos.Generic;
 
 namespace Infrastructure.Repos.Generic
 {
@@ -21,6 +21,50 @@ namespace Infrastructure.Repos.Generic
             _context = context;
             dbSet = context.Set<T>();
         }
+
+        /// <summary>
+        /// Inicia una transacción explícita.
+        /// </summary>
+        public async Task IniciarTransaccion()
+        {
+            if (_currentTransaction != null) return; // No se permite anidar transacciones.
+            _currentTransaction = await _context.Database.BeginTransactionAsync();
+        }
+        /// <summary>
+        /// Guarda los cambios pendientes en el contexto de la base de datos.
+        /// </summary>
+        /// <returns></returns>
+        public async Task Grabar()
+        {
+            await _context.SaveChangesAsync();
+        }
+        /// <summary>
+        /// Confirma los cambios dentro de la transacción actual.
+        /// </summary>
+        public async Task ConfirmarTransaccion()
+        {
+            if (_currentTransaction == null)
+                throw new InvalidOperationException("No hay una transacción activa para confirmar.");
+
+            await Grabar(); // Guarda los cambios en la base de datos.
+            await _currentTransaction.CommitAsync();
+            _currentTransaction.Dispose();
+            _currentTransaction = null;
+        }
+
+        /// <summary>
+        /// Revierte todos los cambios realizados dentro de la transacción actual.
+        /// </summary>
+        public async Task RevertirTransaccion()
+        {
+            if (_currentTransaction == null)
+                throw new InvalidOperationException("No hay una transacción activa para revertir.");
+
+            await _currentTransaction.RollbackAsync();
+            _currentTransaction.Dispose();
+            _currentTransaction = null;
+        }
+
         /// <summary>
         /// Crea una nueva entidad en la base de datos.
         /// </summary>
@@ -31,14 +75,7 @@ namespace Infrastructure.Repos.Generic
             await dbSet.AddAsync(entidad);
             await Grabar();
         }
-        /// <summary>
-        /// Guarda los cambios pendientes en el contexto de la base de datos.
-        /// </summary>
-        /// <returns></returns>
-        public async Task Grabar()
-        {
-            await _context.SaveChangesAsync();
-        }
+
         /// <summary>
         /// Obtiene una única entidad que cumple con un filtro.
         /// </summary>
@@ -77,42 +114,6 @@ namespace Infrastructure.Repos.Generic
         {
             dbSet.Remove(entidad);
             await Grabar();
-        }
-
-        /// <summary>
-        /// Inicia una transacción explícita.
-        /// </summary>
-        public async Task IniciarTransaccion()
-        {
-            if (_currentTransaction != null) return; // No se permite anidar transacciones.
-            _currentTransaction = await _context.Database.BeginTransactionAsync();
-        }
-
-        /// <summary>
-        /// Confirma los cambios dentro de la transacción actual.
-        /// </summary>
-        public async Task ConfirmarTransaccion()
-        {
-            if (_currentTransaction == null)
-                throw new InvalidOperationException("No hay una transacción activa para confirmar.");
-
-            await Grabar(); // Guarda los cambios en la base de datos.
-            await _currentTransaction.CommitAsync();
-            _currentTransaction.Dispose();
-            _currentTransaction = null;
-        }
-
-        /// <summary>
-        /// Revierte todos los cambios realizados dentro de la transacción actual.
-        /// </summary>
-        public async Task RevertirTransaccion()
-        {
-            if (_currentTransaction == null)
-                throw new InvalidOperationException("No hay una transacción activa para revertir.");
-
-            await _currentTransaction.RollbackAsync();
-            _currentTransaction.Dispose();
-            _currentTransaction = null;
         }
         /// <summary>
         /// Obtiene una proyección específica de una entidad que cumple con un filtro.

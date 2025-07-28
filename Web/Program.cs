@@ -1,6 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Infrastructure;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace Web
 {
@@ -10,12 +9,14 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            
+
+            builder.Services.AddServices();
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             var conectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<DbContexto>(options =>
                 options.UseNpgsql(conectionString));
-
             var app = builder.Build();
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
