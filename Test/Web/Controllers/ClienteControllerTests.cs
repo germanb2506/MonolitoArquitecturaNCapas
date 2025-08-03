@@ -1,6 +1,8 @@
 using App.Dto;
 using App.Interfaces.Services;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
 using Test.Helpers;
 using Web.Controllers;
 
@@ -109,7 +111,14 @@ namespace Test.Web.Controllers
 
             // Assert
             var jsonResult = actionResult.Should().BeOfType<JsonResult>().Subject;
-            jsonResult.Value.Should().Be("Aca no llegaron datos");
+            var resultData = jsonResult.Value;
+            
+            // Verificar las propiedades del objeto anónimo
+            var success = resultData.GetType().GetProperty("success")?.GetValue(resultData);
+            var message = resultData.GetType().GetProperty("message")?.GetValue(resultData);
+            
+            success.Should().Be(false);
+            message.Should().Be("No se recibieron datos");
         }
     }
 } 

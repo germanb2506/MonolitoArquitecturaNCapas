@@ -1,7 +1,7 @@
-using App.Interfaces.Repos;
 using Domain.Entities;
-using Infrastructure.Repos;
+using FluentAssertions;
 using Infrastructure;
+using Infrastructure.Repos;
 using Microsoft.EntityFrameworkCore;
 using Test.Helpers;
 
@@ -9,204 +9,242 @@ namespace Test.Infrastructure.Repos
 {
     public class ClienteRepoTests : IDisposable
     {
-        private readonly DbContextOptions<DbContexto> _options;
         private readonly DbContexto _context;
         private readonly ClienteRepo _clienteRepo;
 
         public ClienteRepoTests()
         {
-            _options = new DbContextOptionsBuilder<DbContexto>()
+            var options = new DbContextOptionsBuilder<DbContexto>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _context = new DbContexto(_options);
+            _context = new DbContexto(options);
             _clienteRepo = new ClienteRepo(_context);
         }
 
         [Fact]
-        public async Task Crear_DeberiaAgregarClienteALaBaseDeDatos()
+        public async Task ObtenerPorNit_DeberiaRetornarCliente_CuandoExiste()
         {
             // Arrange
-            var cliente = TestDataHelper.CreateSampleCliente();
-
-            // Act
-            await _clienteRepo.Crear(cliente);
-            await _context.SaveChangesAsync();
-
-            // Assert
-            var clienteGuardado = await _context.Set<Cliente>().FirstOrDefaultAsync(c => c.Id == cliente.Id);
-            clienteGuardado.Should().NotBeNull();
-            clienteGuardado!.RazonSocial.Should().Be(cliente.RazonSocial);
-            clienteGuardado.Nit.Should().Be(cliente.Nit);
-        }
-
-        [Fact]
-        public async Task Obtener_DeberiaRetornarCliente_CuandoExiste()
-        {
-            // Arrange
-            var cliente = TestDataHelper.CreateSampleCliente();
-            _context.Set<Cliente>().Add(cliente);
+            var cliente = TestDataHelper.CreateSampleCliente(1);
+            await _context.Set<Cliente>().AddAsync(cliente);
             await _context.SaveChangesAsync();
 
             // Act
-            var clienteEncontrado = await _clienteRepo.Obtener(c => c.Id == cliente.Id);
+            var resultado = await _clienteRepo.ObtenerPorNit(cliente.Nit);
 
             // Assert
-            clienteEncontrado.Should().NotBeNull();
-            clienteEncontrado!.Id.Should().Be(cliente.Id);
-            clienteEncontrado.RazonSocial.Should().Be(cliente.RazonSocial);
+            resultado.Should().NotBeNull();
+            resultado.Nit.Should().Be(cliente.Nit);
         }
 
         [Fact]
-        public async Task Obtener_DeberiaRetornarNull_CuandoNoExiste()
+        public async Task ObtenerPorNit_DeberiaRetornarNull_CuandoNoExiste()
         {
-            // Arrange
-            var idInexistente = 999;
-
             // Act
-            var clienteEncontrado = await _clienteRepo.Obtener(c => c.Id == idInexistente);
+            var resultado = await _clienteRepo.ObtenerPorNit("999999999");
 
             // Assert
-            clienteEncontrado.Should().BeNull();
+            resultado.Should().BeNull();
         }
 
         [Fact]
-        public async Task ObtenerTodos_DeberiaRetornarTodosLosClientes()
+        public async Task ObtenerPorCorreo_DeberiaRetornarCliente_CuandoExiste()
         {
             // Arrange
-            var clientes = TestDataHelper.CreateSampleClientes(3);
-            _context.Set<Cliente>().AddRange(clientes);
+            var cliente = TestDataHelper.CreateSampleCliente(1);
+            await _context.Set<Cliente>().AddAsync(cliente);
             await _context.SaveChangesAsync();
 
             // Act
-            var clientesObtenidos = await _clienteRepo.ObtenerTodos();
+            var resultado = await _clienteRepo.ObtenerPorCorreo(cliente.CorreoContacto);
 
             // Assert
-            clientesObtenidos.Should().NotBeNull();
-            clientesObtenidos.Count.Should().Be(3);
-            clientesObtenidos.Should().BeEquivalentTo(clientes, options => options.Excluding(c => c.FechaRegistro));
+            resultado.Should().NotBeNull();
+            resultado.CorreoContacto.Should().Be(cliente.CorreoContacto);
         }
 
         [Fact]
-        public async Task ObtenerTodos_DeberiaRetornarListaVacia_CuandoNoHayClientes()
+        public async Task ObtenerPorCorreo_DeberiaRetornarNull_CuandoNoExiste()
         {
             // Act
-            var clientesObtenidos = await _clienteRepo.ObtenerTodos();
+            var resultado = await _clienteRepo.ObtenerPorCorreo("noexiste@test.com");
 
             // Assert
-            clientesObtenidos.Should().NotBeNull();
-            clientesObtenidos.Should().BeEmpty();
+            resultado.Should().BeNull();
         }
 
         [Fact]
-        public async Task Remover_DeberiaEliminarClienteDeLaBaseDeDatos()
+        public async Task ObtenerPorCiudad_DeberiaRetornarClientes_CuandoExisten()
         {
             // Arrange
-            var cliente = TestDataHelper.CreateSampleCliente();
-            _context.Set<Cliente>().Add(cliente);
+            var cliente1 = TestDataHelper.CreateSampleCliente(1);
+            var cliente2 = TestDataHelper.CreateSampleCliente(2);
+            cliente1.Ciudad = "Bogotá";
+            cliente2.Ciudad = "Bogotá";
+            
+            await _context.Set<Cliente>().AddRangeAsync(cliente1, cliente2);
             await _context.SaveChangesAsync();
 
             // Act
-            await _clienteRepo.Remover(cliente);
-            await _context.SaveChangesAsync();
+            var resultado = await _clienteRepo.ObtenerPorCiudad("Bogotá");
 
             // Assert
-            var clienteEliminado = await _context.Set<Cliente>().FirstOrDefaultAsync(c => c.Id == cliente.Id);
-            clienteEliminado.Should().BeNull();
+            resultado.Should().HaveCount(2);
+            resultado.Should().OnlyContain(c => c.Ciudad == "Bogotá");
         }
 
         [Fact]
-        public async Task Grabar_DeberiaGuardarCambiosEnLaBaseDeDatos()
+        public async Task ObtenerActivos_DeberiaRetornarSoloClientesActivos()
         {
             // Arrange
-            var cliente = TestDataHelper.CreateSampleCliente();
-            _context.Set<Cliente>().Add(cliente);
-
-            // Act
-            await _clienteRepo.Grabar();
-
-            // Assert
-            var clienteGuardado = await _context.Set<Cliente>().FirstOrDefaultAsync(c => c.Id == cliente.Id);
-            clienteGuardado.Should().NotBeNull();
-        }
-
-        [Fact]
-        public async Task Obtener_DeberiaFiltrarPorCriterios()
-        {
-            // Arrange
-            var clientes = new List<Cliente>
-            {
-                TestDataHelper.CreateSampleCliente(1),
-                TestDataHelper.CreateSampleCliente(2)
-            };
-            clientes[0].Activo = true;
-            clientes[1].Activo = false;
-
-            _context.Set<Cliente>().AddRange(clientes);
+            var clienteActivo = TestDataHelper.CreateSampleCliente(1);
+            var clienteInactivo = TestDataHelper.CreateSampleCliente(2);
+            clienteActivo.Activo = true;
+            clienteInactivo.Activo = false;
+            
+            await _context.Set<Cliente>().AddRangeAsync(clienteActivo, clienteInactivo);
             await _context.SaveChangesAsync();
 
             // Act
-            var clientesActivos = await _clienteRepo.Obtener(c => c.Activo == true);
+            var resultado = await _clienteRepo.ObtenerActivos();
 
             // Assert
-            clientesActivos.Should().NotBeNull();
-            clientesActivos!.Activo.Should().BeTrue();
+            resultado.Should().HaveCount(1);
+            resultado.Should().OnlyContain(c => c.Activo);
         }
 
         [Fact]
-        public async Task Obtener_DeberiaRetornarPrimerClienteQueCumplaCriterio()
+        public async Task ObtenerPorTipo_DeberiaRetornarClientesDelTipo()
         {
             // Arrange
-            var clientes = TestDataHelper.CreateSampleClientes(3);
-            _context.Set<Cliente>().AddRange(clientes);
+            var clienteJuridico = TestDataHelper.CreateSampleCliente(1);
+            var clienteNatural = TestDataHelper.CreateSampleCliente(2);
+            clienteJuridico.TipoCliente = "Jurídica";
+            clienteNatural.TipoCliente = "Natural";
+            
+            await _context.Set<Cliente>().AddRangeAsync(clienteJuridico, clienteNatural);
             await _context.SaveChangesAsync();
 
             // Act
-            var primerCliente = await _clienteRepo.Obtener(c => c.Id > 0);
+            var resultado = await _clienteRepo.ObtenerPorTipo("Jurídica");
 
             // Assert
-            primerCliente.Should().NotBeNull();
-            primerCliente!.Id.Should().BeGreaterThan(0);
+            resultado.Should().HaveCount(1);
+            resultado.Should().OnlyContain(c => c.TipoCliente == "Jurídica");
         }
 
         [Fact]
-        public async Task Crear_DeberiaAsignarIdAutomaticamente()
+        public async Task ExisteNit_DeberiaRetornarTrue_CuandoExiste()
         {
             // Arrange
-            var cliente = TestDataHelper.CreateSampleCliente();
-            cliente.Id = 0; // Reset ID
-
-            // Act
-            await _clienteRepo.Crear(cliente);
+            var cliente = TestDataHelper.CreateSampleCliente(1);
+            await _context.Set<Cliente>().AddAsync(cliente);
             await _context.SaveChangesAsync();
 
+            // Act
+            var resultado = await _clienteRepo.ExisteNit(cliente.Nit);
+
             // Assert
-            cliente.Id.Should().BeGreaterThan(0);
+            resultado.Should().BeTrue();
         }
 
         [Fact]
-        public async Task Obtener_DeberiaManejarExpresionesComplejas()
+        public async Task ExisteNit_DeberiaRetornarFalse_CuandoNoExiste()
+        {
+            // Act
+            var resultado = await _clienteRepo.ExisteNit("999999999");
+
+            // Assert
+            resultado.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ExisteCorreo_DeberiaRetornarTrue_CuandoExiste()
         {
             // Arrange
-            var clientes = new List<Cliente>
-            {
-                TestDataHelper.CreateSampleCliente(1),
-                TestDataHelper.CreateSampleCliente(2),
-                TestDataHelper.CreateSampleCliente(3)
-            };
-            clientes[0].Ciudad = "Bogotá";
-            clientes[1].Ciudad = "Medellín";
-            clientes[2].Ciudad = "Bogotá";
-
-            _context.Set<Cliente>().AddRange(clientes);
+            var cliente = TestDataHelper.CreateSampleCliente(1);
+            await _context.Set<Cliente>().AddAsync(cliente);
             await _context.SaveChangesAsync();
 
             // Act
-            var clientesBogota = await _clienteRepo.Obtener(c => c.Ciudad == "Bogotá" && c.Activo == true);
+            var resultado = await _clienteRepo.ExisteCorreo(cliente.CorreoContacto);
 
             // Assert
-            clientesBogota.Should().NotBeNull();
-            clientesBogota!.Ciudad.Should().Be("Bogotá");
+            resultado.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ExisteCorreo_DeberiaRetornarFalse_CuandoNoExiste()
+        {
+            // Act
+            var resultado = await _clienteRepo.ExisteCorreo("noexiste@test.com");
+
+            // Assert
+            resultado.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ObtenerPorPais_DeberiaRetornarClientesDelPais()
+        {
+            // Arrange
+            var cliente1 = TestDataHelper.CreateSampleCliente(1);
+            var cliente2 = TestDataHelper.CreateSampleCliente(2);
+            cliente1.Pais = "Colombia";
+            cliente2.Pais = "Colombia";
+            
+            await _context.Set<Cliente>().AddRangeAsync(cliente1, cliente2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var resultado = await _clienteRepo.ObtenerPorPais("Colombia");
+
+            // Assert
+            resultado.Should().HaveCount(2);
+            resultado.Should().OnlyContain(c => c.Pais == "Colombia");
+        }
+
+        [Fact]
+        public async Task BuscarPorRazonSocial_DeberiaRetornarClientesQueCoincidan()
+        {
+            // Arrange
+            var cliente1 = TestDataHelper.CreateSampleCliente(1);
+            var cliente2 = TestDataHelper.CreateSampleCliente(2);
+            cliente1.RazonSocial = "Empresa ABC Ltda";
+            cliente2.RazonSocial = "Compañía ABC SAS";
+            
+            await _context.Set<Cliente>().AddRangeAsync(cliente1, cliente2);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var resultado = await _clienteRepo.BuscarPorRazonSocial("ABC");
+
+            // Assert
+            resultado.Should().HaveCount(2);
+            resultado.Should().OnlyContain(c => c.RazonSocial.Contains("ABC"));
+        }
+
+        [Fact]
+        public async Task ObtenerPorRangoFechas_DeberiaRetornarClientesEnElRango()
+        {
+            // Arrange
+            var cliente1 = TestDataHelper.CreateSampleCliente(1);
+            var cliente2 = TestDataHelper.CreateSampleCliente(2);
+            cliente1.FechaRegistro = DateTime.Now.AddDays(-5);
+            cliente2.FechaRegistro = DateTime.Now.AddDays(-10);
+            
+            await _context.Set<Cliente>().AddRangeAsync(cliente1, cliente2);
+            await _context.SaveChangesAsync();
+
+            var fechaInicio = DateTime.Now.AddDays(-15);
+            var fechaFin = DateTime.Now.AddDays(-1);
+
+            // Act
+            var resultado = await _clienteRepo.ObtenerPorRangoFechas(fechaInicio, fechaFin);
+
+            // Assert
+            resultado.Should().HaveCount(2);
+            resultado.Should().OnlyContain(c => c.FechaRegistro >= fechaInicio && c.FechaRegistro <= fechaFin);
         }
 
         public void Dispose()
